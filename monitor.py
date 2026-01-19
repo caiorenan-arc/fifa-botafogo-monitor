@@ -24,15 +24,19 @@ def main():
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto(URL, timeout=60000)
+        page.wait_for_load_state("networkidle")
 
-        page.fill('input[placeholder="Club"]', "Botafogo")
+        # pega o primeiro input visível da página
+        input_box = page.locator("input").first
+        input_box.click()
+        input_box.fill("Botafogo")
         page.keyboard.press("Enter")
-        page.wait_for_timeout(5000)
 
-        text = page.content()
+        page.wait_for_timeout(5000)
+        html = page.content()
         browser.close()
 
-    if "We could not found what you where looking for" in text:
+    if "We could not found what you where looking for" in html:
         msg = (
             "🚨 ALERTA FIFA 🚨\n\n"
             "A busca por *Botafogo* no campo CLUB retornou:\n"
@@ -41,9 +45,11 @@ def main():
         )
         send_telegram(msg)
         open(FLAG_FILE, "w").write("enviado")
+        print("Alerta enviado")
 
     else:
         print("Botafogo ainda consta na lista.")
 
 if __name__ == "__main__":
     main()
+
